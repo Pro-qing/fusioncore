@@ -93,6 +93,15 @@ public:
     // that republishes GPS velocity as nav_msgs/Odometry.
     declare_parameter("gnss.velocity_topic", std::string(""));
 
+    // Radar Doppler velocity topic: fuses ego-velocity from a 4D imaging radar.
+    // Accepts nav_msgs/Odometry with velocity in the robot body frame:
+    //   linear.x = forward (m/s), linear.y = lateral (m/s)
+    // A bridge node extracts ego-velocity from raw radar point cloud Doppler and
+    // publishes here. Works indoors and outdoors, all weather conditions.
+    // Leave empty to disable.
+    declare_parameter("radar.velocity_topic", std::string(""));
+    declare_parameter("radar.vel_noise",      0.1);   // m/s fallback when msg cov <= 0
+
     declare_parameter("gnss.base_noise_xy",  1.0);
     declare_parameter("gnss.base_noise_z",   2.0);
     declare_parameter("gnss.heading_noise",  0.02);
@@ -210,6 +219,8 @@ public:
 
     encoder2_topic_    = get_parameter("encoder2.topic").as_string();
     gnss_vel_topic_    = get_parameter("gnss.velocity_topic").as_string();
+    radar_vel_topic_   = get_parameter("radar.velocity_topic").as_string();
+    radar_vel_noise_   = get_parameter("radar.vel_noise").as_double();
 
     config.gnss.base_noise_xy  = get_parameter("gnss.base_noise_xy").as_double();
     config.gnss.base_noise_z   = get_parameter("gnss.base_noise_z").as_double();
@@ -377,6 +388,17 @@ public:
         "GPS velocity fusion enabled on topic: %s", gnss_vel_topic_.c_str());
     }
 
+    if (!radar_vel_topic_.empty()) {
+      radar_vel_sub_ = create_subscription<nav_msgs::msg::Odometry>(
+        radar_vel_topic_, 10,
+        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+          std::lock_guard<std::mutex> lock(fc_mutex_);
+          radar_vel_callback(msg);
+        }, sensor_opts);
+      RCLCPP_INFO(get_logger(),
+        "Radar Doppler velocity fusion enabled on topic: %s", radar_vel_topic_.c_str());
+    }
+
     gnss_sub_ = create_subscription<sensor_msgs::msg::NavSatFix>(
       "/gnss/fix", 10,
       [this](const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
@@ -510,6 +532,7 @@ public:
     encoder_sub_.reset();
     encoder2_sub_.reset();
     gnss_vel_sub_.reset();
+    radar_vel_sub_.reset();
     gnss_sub_.reset();
     gnss2_sub_.reset();
     gnss_heading_sub_.reset();
@@ -955,6 +978,28 @@ private:
     const double wz = msg->twist.twist.angular.z;
 
     fc_->update_encoder(t, vx, vy, wz, var_vx, var_vy, var_wz);
+  }
+
+  // ─── Radar Doppler velocity callback ─────────────────────────────────────
+  // Fuses ego-velocity from a 4D imaging radar as an independent measurement.
+  // Velocity is expected in robot body frame: linear.x=forward, linear.y=lateral.
+  // A bridge node handles raw Doppler point cloud -> ego-velocity extraction.
+  // Works indoors and in all weather (rain, fog, dust) where GPS is unreliable.
+  // Angular rate from radar is not reliable; WZ is suppressed via large variance.
+
+  void radar_vel_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+  {
+    if (!fc_->is_initialized()) return;
+
+    const double t  = rclcpp::Time(msg->header.stamp).seconds();
+    const double vx = msg->twist.twist.linear.x;
+    const double vy = msg->twist.twist.linear.y;
+
+    const auto& cov = msg->twist.covariance;
+    const double var_vx = (cov[0] > 0.0) ? cov[0] : (radar_vel_noise_ * radar_vel_noise_);
+    const double var_vy = (cov[7] > 0.0) ? cov[7] : (radar_vel_noise_ * radar_vel_noise_);
+
+    fc_->update_encoder(t, vx, vy, 0.0, var_vx, var_vy, 1e6);
   }
 
   // ─── GPS velocity callback ────────────────────────────────────────────────
@@ -1558,6 +1603,7 @@ private:
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr        encoder_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr        encoder2_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr        gnss_vel_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr        radar_vel_sub_;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr    gnss_sub_;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr                gnss2_sub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr                       odom_pub_;
@@ -1577,6 +1623,8 @@ private:
   std::string azimuth_topic_;
   std::string encoder2_topic_;
   std::string gnss_vel_topic_;
+  std::string radar_vel_topic_;
+  double      radar_vel_noise_ = 0.1;
 
   bool        pending_init_        = false;
 

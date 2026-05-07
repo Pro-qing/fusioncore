@@ -84,6 +84,16 @@ fusioncore:
     # publishes velocity. Leave empty to disable.
     gnss.velocity_topic: ""
 
+    # Radar Doppler velocity (optional): fuses ego-velocity from a 4D imaging radar
+    # (Continental ARS548, Oculii Eagle, Aptiv ESR, etc.) as an independent measurement.
+    # Accepts nav_msgs/Odometry with velocity in robot body frame:
+    #   linear.x = forward speed (m/s), linear.y = lateral speed (m/s)
+    # A bridge node extracts ego-velocity from raw Doppler point cloud and publishes here.
+    # Works indoors and in all weather -- rain, fog, dust, darkness.
+    # radar.vel_noise is used when the message covariance is zero or negative.
+    radar.velocity_topic: ""
+    radar.vel_noise: 0.1        # m/s fallback noise when message has no covariance
+
     # Heading input: pick one or both
     gnss.heading_topic: ""      # sensor_msgs/Imu (dual antenna heading)
     gnss.azimuth_topic: ""      # compass_msgs/Azimuth (preferred REP-145 standard)

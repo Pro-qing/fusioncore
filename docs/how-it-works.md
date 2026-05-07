@@ -203,6 +203,34 @@ Leave `gnss.velocity_topic` empty (the default) to disable. No behavior change f
 
 ---
 
+## Radar Doppler velocity fusion
+
+4D imaging radar outputs a point cloud where every point carries a Doppler velocity -- the radial speed of that point relative to the sensor. By fitting a velocity model across all points, a bridge node can extract the robot's ego-velocity: how fast the robot itself is moving, measured purely from radio wave physics.
+
+This ego-velocity is completely independent of wheels, GPS, and IMU. It works indoors. It works in rain, fog, dust, and complete darkness. It does not care whether the wheels are slipping.
+
+FusionCore fuses this as a separate measurement update alongside wheel odometry. The innovation between radar velocity and wheel velocity directly reveals slip -- the same principle as GPS velocity fusion, but available in every environment instead of only outdoors with a sky view.
+
+**Supported hardware** (via bridge nodes):
+
+| Radar | Output format |
+|---|---|
+| Continental ARS548 / ARS540 | ROS 2 driver + ego-velocity bridge |
+| Oculii Eagle | ROS 2 driver + ego-velocity bridge |
+| Aptiv ESR | ROS 2 driver + ego-velocity bridge |
+| Any radar with ROS 2 PointCloud2 + Doppler field | Generic bridge |
+
+**How to enable**
+
+```yaml
+radar.velocity_topic: "/radar/ego_velocity"
+radar.vel_noise: 0.1    # m/s, used when message has no covariance
+```
+
+Expects `nav_msgs/Odometry` with velocity in robot body frame (`linear.x` = forward, `linear.y` = lateral). The bridge node handles raw Doppler extraction and frame conversion -- FusionCore receives clean body-frame velocity.
+
+---
+
 ## Delay compensation
 
 FusionCore stores a ring buffer of 100 IMU messages (1 second at 100 Hz). When a delayed GPS fix arrives, it restores the closest state snapshot before the fix timestamp, re-fuses the fix at the correct time, then replays all buffered IMU messages forward to the present. This eliminates motion-model approximation error for delayed measurements.
