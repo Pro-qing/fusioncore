@@ -32,6 +32,9 @@ fusioncore:
     # NOTE: opposite of robot_localization's imu0_remove_gravitational_acceleration.
 
     imu.frame_id: ""  # override IMU TF frame. Leave empty to use msg header.frame_id.
+                      # Set when your simulator or IMU driver stamps messages with a
+                      # non-standard frame name (e.g. Gazebo Harmonic TurtleBot3 publishes
+                      # "waffle/imu_link/tb3_imu"). Set to your URDF frame name instead.
 
     # ── Wheel encoders ────────────────────────────────────────────────────────
     encoder.vel_noise: 0.05     # m/s

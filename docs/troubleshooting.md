@@ -175,6 +175,32 @@ If `x` is non-zero at standstill, either fix the driver or set `init.stationary_
 
 ---
 
+## FusionCore odom drifts more than raw wheel odometry in Gazebo
+
+This is expected in simulation. Gazebo's DiffDrive plugin produces near-perfect wheel velocities with no slip. The simulated IMU injects Gaussian noise. FusionCore fuses both — so the noisy IMU slightly degrades a perfect odometry source. The result: slightly more drift than raw wheel odometry, and larger `map → odom` corrections when SLAM loop-closing fires.
+
+On real hardware this inverts: encoders accumulate slip, terrain variation, and mechanical error while IMU noise is small by comparison. That is where the fusion pays off.
+
+The map quality is unaffected — SLAM corrects the drift. The issue is visual only.
+
+**If the IMU frame name doesn't match your URDF (common in Gazebo Harmonic TurtleBot3):**
+
+Gazebo can publish IMU messages with an internal frame name like `waffle/imu_link/tb3_imu` instead of `imu_link`. FusionCore can't find that frame in the TF tree and logs:
+
+```
+Cannot transform IMU from waffle/imu_link/tb3_imu to base_footprint: does not exist
+```
+
+Fix: set `imu.frame_id` to the URDF frame name in your config:
+
+```yaml
+imu.frame_id: "imu_link"
+```
+
+This tells FusionCore to ignore the frame stamped on incoming IMU messages and use your URDF frame instead.
+
+---
+
 ## `/fusion/odom` publishing at wrong rate
 
 `publish_rate` defaults to `100.0` Hz. The actual rate is limited by your system load and the timer precision on WSL2/Raspberry Pi.
