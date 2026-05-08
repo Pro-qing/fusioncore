@@ -68,6 +68,9 @@ tools/gen_article_docx.py
 tools/fix_paper_figures.py
 tools/gen_fusioncore_arch.py
 
+# External repos cloned locally for reference
+rtabmap_ros/
+
 # Demo bag: lives on GitHub Releases, not in the repo
 demo/*.mcap
 demo_result.png
