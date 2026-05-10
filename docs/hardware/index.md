@@ -10,6 +10,8 @@ Pick the row that matches your sensors. Everything else follows from there.
 | IMU + LiDAR ICP | Indoor, no wheel odom: using KISS-ICP or rtabmap | [`icp_indoor.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/icp_indoor.yaml) |
 | IMU + wheel odom + LiDAR ICP | Indoor, both velocity sources for redundancy | [`wheels_indoor.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/wheels_indoor.yaml) + uncomment `encoder2.topic` |
 | IMU + wheel odom + GPS | Outdoor, field robots, GPS navigation | [`bno085_custom.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/bno085_custom.yaml) or [`clearpath_husky.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/clearpath_husky.yaml) |
+| IMU + VESC encoder + RealSense D435i, **Ackermann** | F1/10 scale car, indoor | [`f1tenth_indoor.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/f1tenth_indoor.yaml) |
+| IMU + ZED 2i visual odom + GPS, **Ackermann** | Van or large vehicle, outdoor | [`van_outdoor_gps.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/van_outdoor_gps.yaml) |
 
 **Variations within each setup: one-line changes, not separate configs:**
 
@@ -33,6 +35,8 @@ Pick the row that matches your sensors. Everything else follows from there.
 | [`bno085_custom.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/bno085_custom.yaml) | IMU + wheels + GPS | Any differential drive (DIY) | Bosch BNO085 | u-blox M8N class |
 | [`clearpath_husky.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/clearpath_husky.yaml) | IMU + wheels + GPS | Clearpath Husky A200 | Microstrain 3DM-GX5-25 | u-blox F9P |
 | [`duatic_mecanum.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/duatic_mecanum.yaml) | IMU + wheels | Duatic mecanum platform | BNO085 | none |
+| [`f1tenth_indoor.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/f1tenth_indoor.yaml) | IMU + VESC encoder, Ackermann | F1/10 scale car (indoor) | RealSense D435i | none |
+| [`van_outdoor_gps.yaml`](https://github.com/manankharwar/fusioncore/blob/main/fusioncore_ros/config/van_outdoor_gps.yaml) | IMU + visual odom + GPS, Ackermann | Full-size van / large vehicle | ZED 2i | any NavSatFix |
 
 ---
 
@@ -58,6 +62,12 @@ ros2 launch fusioncore_ros fusioncore.launch.py \
 ## Indoor / GPS-denied robots
 
 See [Indoor / LiDAR ICP](icp-indoor.md) for detailed setup instructions: KISS-ICP, rtabmap, OAK-D IMU remaps, SLAM integration.
+
+---
+
+## Ackermann / car-like robots
+
+See [Ackermann vehicles](ackermann.md) for F1/10 racers, vans, and anything with front-wheel steering: wheelbase measurement, VESC covariance handling, ZED 2i gravity removal, multiple IMU guidance, and `publish.tf`.
 
 ---
 

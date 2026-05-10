@@ -18,6 +18,10 @@ fusioncore:
     odom_frame: odom
     publish_rate: 100.0
     publish.force_2d: true   # zeroes Z position and Z velocity in published output. Use for ground robots.
+    publish.tf: true         # set false to suppress the odom->base_link TF broadcast.
+                             # /fusion/odom keeps publishing. Use when another node owns
+                             # the odom->base_link transform, or when running two
+                             # FusionCore instances where only one should broadcast TF.
 
     # ── IMU ──────────────────────────────────────────────────────────────────
     imu.gyro_noise: 0.005       # rad/s: from your IMU datasheet (ARW spec)
