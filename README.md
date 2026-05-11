@@ -57,9 +57,6 @@ Inside the container, verify everything works:
 ```bash
 bash tools/quick_test.sh
 ```
-
-FusionCore and all dependencies are pre-built. The container includes `tools/quick_test.sh`, the full benchmark dataset, and the zero-dependency spike demo (`python3 tools/demo_quick.py --open`).
-
 ---
 
 ## Works on the hardware you actually have
