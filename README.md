@@ -41,10 +41,13 @@ git clone https://github.com/manankharwar/fusioncore.git
 cd ~/ros2_ws
 source /opt/ros/jazzy/setup.bash  # or /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -r -y
-colcon build && source install/setup.bash
+colcon build --packages-up-to fusioncore_ros
+source install/setup.bash
 ```
 
-> **Headless / Raspberry Pi:** `touch ~/ros2_ws/src/fusioncore/fusioncore_gazebo/COLCON_IGNORE` before building to skip the Gazebo package.
+> **Always run `colcon build` from `~/ros2_ws`, not from inside the repo.** colcon discovers packages by scanning `src/` from the workspace root.
+
+> **Headless / Raspberry Pi:** `--packages-up-to fusioncore_ros` already skips Gazebo. No extra steps needed.
 
 ```bash
 ros2 launch fusioncore_ros fusioncore_nav2.launch.py \

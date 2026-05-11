@@ -21,16 +21,20 @@ git clone https://github.com/manankharwar/fusioncore.git
 cd ~/ros2_ws
 source /opt/ros/jazzy/setup.bash
 rosdep install --from-paths src --ignore-src -r -y
-colcon build
+colcon build --packages-up-to fusioncore_ros
 source install/setup.bash
 ```
 
+!!! warning "Run colcon from the workspace root, not from inside the repo"
+    Always run `colcon build` from `~/ros2_ws`, not from `~/ros2_ws/src/fusioncore`.
+    colcon discovers packages by scanning `src/` from the workspace root. Running it
+    from inside the repo produces a nested `install/` that conflicts with the workspace.
+
 !!! tip "Headless machines (Raspberry Pi, servers)"
-    `fusioncore_gazebo` depends on `ros_gz_sim` which pulls in Gazebo and GUI components. On headless machines this may fail or install hundreds of MB you don't need. Skip it:
+    `--packages-up-to fusioncore_ros` already skips Gazebo. If you want to be explicit:
     ```bash
     touch ~/ros2_ws/src/fusioncore/fusioncore_gazebo/COLCON_IGNORE
     ```
-    `fusioncore_core` and `fusioncore_ros` have no Gazebo dependency and build fine without it.
 
 ---
 
