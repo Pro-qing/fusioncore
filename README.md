@@ -18,22 +18,7 @@
 
 ## Install
 
-**Option A: Docker (no ROS install required)**
-
-```bash
-docker pull ghcr.io/manankharwar/fusioncore:latest
-docker run --rm -it ghcr.io/manankharwar/fusioncore:latest bash
-```
-
-Inside the container, verify everything works:
-
-```bash
-bash tools/quick_test.sh
-```
-
-FusionCore and all dependencies are pre-built. The container includes `tools/quick_test.sh`, the full benchmark dataset, and the zero-dependency spike demo (`python3 tools/demo_quick.py --open`).
-
-**Option B: From source** (ROS 2 Jazzy on Ubuntu 24.04 or Humble on Ubuntu 22.04):
+**Option A: From source** (ROS 2 Jazzy on Ubuntu 24.04 or Humble on Ubuntu 22.04):
 
 ```bash
 mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
@@ -47,8 +32,6 @@ source install/setup.bash
 
 > **Always run `colcon build` from `~/ros2_ws`, not from inside the repo.** colcon discovers packages by scanning `src/` from the workspace root.
 
-> **Headless / Raspberry Pi:** `--packages-up-to fusioncore_ros` already skips Gazebo. No extra steps needed.
-
 ```bash
 ros2 launch fusioncore_ros fusioncore_nav2.launch.py \
   fusioncore_config:=/path/to/your_robot.yaml
@@ -61,6 +44,21 @@ bash tools/quick_test.sh
 ```
 
 Starts FusionCore with fake sensors and checks all outputs in about 15 seconds. Prints `[PASS]` / `[FAIL]` for each check.
+
+**Option B: Docker (no ROS install required)**
+
+```bash
+docker pull ghcr.io/manankharwar/fusioncore:latest
+docker run --rm -it ghcr.io/manankharwar/fusioncore:latest bash
+```
+
+Inside the container, verify everything works:
+
+```bash
+bash tools/quick_test.sh
+```
+
+FusionCore and all dependencies are pre-built. The container includes `tools/quick_test.sh`, the full benchmark dataset, and the zero-dependency spike demo (`python3 tools/demo_quick.py --open`).
 
 ---
 
