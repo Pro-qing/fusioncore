@@ -77,7 +77,8 @@ sleep 1
 
 # ── 3. Launch FusionCore ──────────────────────────────────────────────────────
 info "Launching FusionCore..."
-ros2 launch fusioncore_ros fusioncore.launch.py >/dev/null 2>&1 &
+ros2 launch fusioncore_ros fusioncore.launch.py \
+    env_config:="${REPO_ROOT}/tools/quick_test_params.yaml" >/dev/null 2>&1 &
 PIDS+=($!)
 sleep 3
 
@@ -105,12 +106,15 @@ pass "Lifecycle: configure → activate"
 sleep 1
 
 # ── 5. Fake sensors ───────────────────────────────────────────────────────────
-info "Publishing fake IMU at 100 Hz (stationary, gravity pointing up)..."
+info "Publishing fake IMU at 100 Hz (stationary, gravity pointing up, orientation provided)..."
 ros2 topic pub /imu/data sensor_msgs/msg/Imu "{
   header: {frame_id: 'imu_link'},
+  orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0},
+  orientation_covariance: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01],
   angular_velocity: {x: 0.0, y: 0.0, z: 0.0},
+  angular_velocity_covariance: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001],
   linear_acceleration: {x: 0.0, y: 0.0, z: 9.81},
-  orientation_covariance: [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  linear_acceleration_covariance: [0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]
 }" --rate 100 >/dev/null 2>&1 &
 PIDS+=($!)
 
@@ -131,7 +135,7 @@ echo "  -------"
 
 check_topic() {
     local topic="$1" label="$2"
-    if ros2 topic echo "${topic}" --once --timeout-seconds 3 >/dev/null 2>&1; then
+    if ros2 topic echo "${topic}" --once --timeout 5 >/dev/null 2>&1; then
         pass "${label}"
     else
         fail "${label}  (topic: ${topic})"
