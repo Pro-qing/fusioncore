@@ -21,7 +21,13 @@ docker pull ghcr.io/manankharwar/fusioncore:latest
 docker run --rm -it ghcr.io/manankharwar/fusioncore:latest bash
 ```
 
-FusionCore and all dependencies are pre-built. The container includes `tools/quick_test.sh` and the full benchmark dataset.
+Inside the container, verify everything works:
+
+```bash
+bash tools/quick_test.sh
+```
+
+FusionCore and all dependencies are pre-built. The container includes `tools/quick_test.sh`, the full benchmark dataset, and the zero-dependency spike demo (`python3 tools/demo_quick.py --open`).
 
 **Option B: From source** (ROS 2 Jazzy on Ubuntu 24.04 or Humble on Ubuntu 22.04):
 
