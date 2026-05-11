@@ -6,8 +6,6 @@
 [![Paper](https://img.shields.io/badge/paper-arXiv%20preprint-b31b1b)](paper/fusioncore_arxiv.pdf)
 [![Newsletter](https://img.shields.io/badge/newsletter-subscribe-orange)](https://manankharwar.substack.com)
 
-> **Stay in the loop:** biweekly updates on new features, benchmarks, and real-world robot integrations. [Subscribe →](https://manankharwar.substack.com)
-
 **ROS 2 UKF sensor fusion for robots that run in the real world. IMU + wheel encoders + GPS at 100 Hz. Handles bad calibration, timestamp jitter, delayed GPS, wheel slip, and ARM hardware out of the box. Apache 2.0.**
 
 <p align="center">
@@ -50,6 +48,7 @@ Inside the container, verify everything works:
 ```bash
 bash tools/quick_test.sh
 ```
+
 ---
 
 ## Works on the hardware you actually have
