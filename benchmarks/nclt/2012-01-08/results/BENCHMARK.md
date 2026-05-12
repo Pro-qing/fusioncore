@@ -1,40 +1,31 @@
 # Benchmark Results: NCLT Sequence 2012-01-08
 
-## Absolute Trajectory Error (ATE)
+## Absolute Trajectory Error (ATE, SE3-aligned)
 
-| Filter | RMSE (m) | Max error (m) |
-|--------|----------|---------------|
-| FusionCore | 5.380 | 20.922 |
-| RL-EKF | 11.294 | 25.288 |
+| Filter | RMSE (m) | Mean (m) | Max (m) | Rot RMSE (°) |
+|--------|----------|----------|---------|---------------|
+| FusionCore | 9.089 | 7.813 | 40.670 | 115.583 |
+| RL-EKF | 61.099 | 54.283 | 139.572 | 115.726 |
 
-## Relative Pose Error (RPE, per 10m segment)
+## Pose Accuracy Distribution
 
-| Filter | RMSE (m) |
-|--------|----------|
-| FusionCore | 17.873 |
-| RL-EKF | 17.724 |
+| Filter | Within 5 m | Within 10 m | Path Length Ratio | Drift (m/km) |
+|--------|------------|-------------|-------------------|---------------|
+| FusionCore | 26.6% | 77.2% | 0.9649 | 1.02 |
+| RL-EKF | 0.0% | 0.4% | 0.9237 | 6.87 |
+
+## Relative Pose Error (RPE)
+
+| Filter | RPE@10m RMSE | RPE@50m RMSE | RPE@100m RMSE |
+|--------|-------------|-------------|---------------|
+| FusionCore | 15.336 m | 65.374 m | 115.158 m |
+| RL-EKF | 15.772 m | 71.784 m | 121.431 m |
 
 ## Methodology
 
 - Dataset: NCLT (University of Michigan)
 - Sequence: 2012-01-08
 - Ground truth: RTK GPS (gps_rtk.csv) projected to local ENU
-- Evaluation tool: [evo](https://github.com/MichaelGrupp/evo)
-- Alignment: SE(3) alignment
+- Evaluation: [evo](https://github.com/MichaelGrupp/evo), SE(3) alignment
+- Motion model: DifferentialDrive
 - Sensor inputs: identical for all filters (IMU + wheel odom + GPS)
-
-### Reproducing
-
-```bash
-# 1. Download NCLT sequence
-# 2. Run benchmark
-ros2 launch fusioncore_datasets nclt_benchmark.launch.py \
-  data_dir:=/path/to/nclt/2012-01-08 output_bag:=./nclt_results
-# 3. Convert ground truth
-python3 tools/nclt_rtk_to_tum.py --rtk gps_rtk.csv --out gt.tum
-# 4. Extract trajectories
-python3 tools/odom_to_tum.py --bag ./nclt_results --topic /fusion/odom --out fc.tum
-python3 tools/odom_to_tum.py --bag ./nclt_results --topic /rl/odometry --out rl.tum
-# 5. Evaluate
-python3 tools/evaluate.py --gt gt.tum --fusioncore fc.tum --rl rl.tum --sequence 2012-01-08
-```
