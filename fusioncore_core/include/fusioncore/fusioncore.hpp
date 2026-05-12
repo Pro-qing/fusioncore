@@ -90,6 +90,12 @@ struct FusionCoreConfig {
   // Multiplier applied to q_position each predict step while in coast mode.
   // 20.0 ≈ 4.5× position sigma growth per second at 100Hz IMU.
   double gnss_coast_q_factor = 20.0;
+  // After gnss_coast_n consecutive rejections, inflate R by this factor and
+  // retry the gate. Fixes that pass the relaxed gate are accepted with a
+  // down-weighted Kalman gain rather than hard-rejected.
+  // 3.0 = loosen the gate by ~1.7x in sigma units; keeps spike rejection intact.
+  // 0.0 or 1.0 = disabled (no R inflation, only Q inflation from coast mode).
+  double gnss_degraded_noise_multiplier = 3.0;
 };
 
 // How heading was validated: tracked per filter run

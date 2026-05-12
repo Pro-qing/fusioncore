@@ -663,20 +663,38 @@ bool FusionCore::apply_gnss_update(
     ukf_.predict_measurement<sensors::GNSS_POS_DIM>(z, h_gnss, R, innovation_pre, S);
     if (is_outlier<sensors::GNSS_POS_DIM>(innovation_pre, S, config_.outlier_threshold_gnss)) {
       ++gnss_outliers_;
-      // Inertial coast mode: after N consecutive rejections, inflate Q_position
-      // so P grows and the gate naturally relaxes when GPS recovers.
       if (config_.gnss_coast_n > 0) {
         ++gnss_consecutive_rejects_;
-        if (gnss_consecutive_rejects_ >= config_.gnss_coast_n && !gnss_in_coast_) {
-          gnss_in_coast_ = true;
-          ukf_.set_position_noise_scale(config_.gnss_coast_q_factor);
+        if (gnss_consecutive_rejects_ >= config_.gnss_coast_n) {
+          if (!gnss_in_coast_) {
+            gnss_in_coast_ = true;
+            ukf_.set_position_noise_scale(config_.gnss_coast_q_factor);
+          }
+          // Degraded mode: inflate R and retry the gate. Fixes that pass are
+          // accepted with a reduced Kalman gain rather than hard-rejected.
+          // This breaks the cascade-rejection loop under sustained GPS degradation.
+          if (config_.gnss_degraded_noise_multiplier > 1.0) {
+            sensors::GnssPosNoiseMatrix R_deg = R * config_.gnss_degraded_noise_multiplier;
+            sensors::GnssPosMeasurement innov_deg;
+            sensors::GnssPosNoiseMatrix S_deg;
+            ukf_.predict_measurement<sensors::GNSS_POS_DIM>(z, h_gnss, R_deg, innov_deg, S_deg);
+            if (!is_outlier<sensors::GNSS_POS_DIM>(innov_deg, S_deg, config_.outlier_threshold_gnss)) {
+              Eigen::Matrix<double, sensors::GNSS_POS_DIM, 1> innovation =
+                ukf_.update<sensors::GNSS_POS_DIM>(z, h_gnss, R_deg);
+              adapt_R<sensors::GNSS_POS_DIM>(R_gnss_, R_gnss_floor_, gnss_innovations_, innovation, config_.adaptive_gnss);
+              gnss_in_coast_ = false;
+              ukf_.set_position_noise_scale(1.0);
+              gnss_consecutive_rejects_ = 0;
+              return true;
+            }
+          }
         }
       }
       return false;
     }
   }
 
-  // GPS accepted: exit coast mode and reset counter
+  // GPS accepted normally: exit coast mode and reset counter
   if (gnss_in_coast_) {
     gnss_in_coast_ = false;
     ukf_.set_position_noise_scale(1.0);
