@@ -67,6 +67,8 @@ fusioncore:
     # Note: slam_toolbox publishes PoseWithCovarianceStamped, not Odometry.
     # It cannot be used directly as encoder2; wrap it or use KISS-ICP instead.
     encoder2.topic: ""          # e.g. "/kiss/odometry" or "/icp_odom"
+    encoder2.vel_noise: 0.05    # m/s  fallback when message covariance is zero
+    encoder2.yaw_noise: 0.02    # rad/s fallback when message covariance is zero
 
     # ── GPS ───────────────────────────────────────────────────────────────────
     gnss.base_noise_xy: 1.0     # m: baseline sigma at HDOP=1
@@ -132,6 +134,19 @@ fusioncore:
     outlier_threshold_hdg:  10.83   # chi2(1, 0.999): 1D heading
     # Do NOT lower these below chi2 critical values. At 7.0 normal GPS noise
     # trips the gate and every fix gets rejected.
+
+    # ── GPS coast mode (cascade rejection recovery) ───────────────────────────
+    gnss.coast_n: 5              # consecutive rejections before entering coast mode
+    gnss.coast_q_factor: 20.0   # process noise multiplier while coasting (inflates P)
+    gnss.degraded_noise_multiplier: 3.0
+    # After gnss.coast_n consecutive GPS outliers, the filter enters coast mode.
+    # In coast mode: (1) P is inflated by coast_q_factor each step so the filter
+    # stays open to correction, (2) the next fix is tested against a gate inflated
+    # by degraded_noise_multiplier, giving it a wider acceptance window.
+    # This breaks the cascade rejection loop where a stationary or slowly-drifting
+    # filter keeps rejecting valid fixes because its covariance is too tight.
+    # Increase coast_n if you want more patience before relaxing; increase
+    # degraded_noise_multiplier if large GPS jumps should still be accepted.
 
     # ── Adaptive noise ────────────────────────────────────────────────────────
     adaptive.imu: true

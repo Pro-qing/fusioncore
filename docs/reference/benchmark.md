@@ -19,7 +19,7 @@ FusionCore wins 5 of 6 sequences. RL-UKF diverged with NaN on all six (confirmed
 
 **RL-EKF gating config:** `odom0_twist_rejection_threshold: 4.03` (chi²(3, 0.999) = 16.27, sqrt = 4.03) and `odom1_pose_rejection_threshold: 3.72` (chi²(2, 0.999) = 13.82, sqrt = 3.72): matching FusionCore's per-sensor chi-squared thresholds at the same confidence level. Previous results used a non-existent parameter name (`odom0_mahal_threshold`) that RL silently ignored, leaving RL with no gating at all.
 
-**On 2012-11-04** (fall, degraded GPS): FC's chi-squared gate traps itself: sustained GPS degradation causes continuous rejection → state drift → further rejection. RL-EKF re-anchors when signal improves. This is a genuine limitation of FC's outlier rejection under prolonged degraded conditions.
+**On 2012-11-04** (fall, degraded GPS): the 28.6 m result was recorded before fix #38. FC's chi-squared gate was trapping itself: sustained GPS degradation caused continuous rejection → state drift → further rejection. Fix #38 (coast mode + adaptive R-inflation) addresses this: after `gnss.coast_n` consecutive rejections the gate widens by `gnss.degraded_noise_multiplier`, breaking the cascade. Re-benchmark pending.
 
 **Why gating hurts RL on most sequences:** RL takes GPS measurement covariance directly from the NavSatFix message (via navsat\_transform). NCLT's GPS receiver reports covariances that are tighter than actual noise, so innovations that are physically valid look like outliers at chi²(2, 0.999): and get rejected. FusionCore uses a user-specified noise floor (`gnss.base_noise_xy`) which is tuned to match real sensor behavior, giving better-calibrated innovation statistics under the same threshold.
 
