@@ -1,7 +1,7 @@
 #!/bin/bash
-# Run all 12 NCLT benchmark sequences sequentially.
-# Each sequence takes ~240s wall clock at 3x speed.
-# Total runtime: ~50 minutes.
+# Run all 12 NCLT benchmark sequences sequentially (full length each).
+# Each sequence runs to completion at 3x speed.
+# Longest sequence ~120 min -> ~40 min wall. Total: ~6-8 hours.
 #
 # Usage: bash benchmarks/run_all.sh
 
