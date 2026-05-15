@@ -1,6 +1,9 @@
 #!/bin/bash
 # Run a single NCLT benchmark sequence (full length).
 # Usage: bash benchmarks/run_one.sh 2012-01-08
+#
+# Stops automatically when nclt_player prints "Playback complete."
+# No Ctrl+C needed.
 
 SEQ=${1:-2012-01-08}
 
@@ -10,9 +13,7 @@ source /mnt/c/Users/Admin/ROS/ROS/fusioncore/install/setup.bash
 
 REPO=/mnt/c/Users/Admin/ROS/ROS/fusioncore
 RATE=3.0
-# Full-length: duration_s=0 plays every row in the CSV.
-# Wall-time cap: longest NCLT sequence is ~120 min -> 40 min at 3x + 10 min buffer = 3000s.
-WALL_TIME=3000
+WALL_TIME=3000   # hard cap: 50 min covers longest sequence at 3x
 
 DATA_DIR="$REPO/benchmarks/nclt/$SEQ"
 BAG_DIR="$DATA_DIR/bag_full"
@@ -54,16 +55,53 @@ sleep 8
 
 rm -rf "$BAG_DIR"
 rm -f "$DATA_DIR/fusioncore.tum" "$DATA_DIR/rl_ekf.tum" "$DATA_DIR/ground_truth.tum"
+> "$RESULTS_DIR/launch.log"
 
-echo "Launching full-length benchmark (wall cap: ${WALL_TIME}s)..."
-timeout --signal=SIGINT $WALL_TIME ros2 launch fusioncore_datasets nclt_benchmark.launch.py \
+echo "Launching full-length benchmark (auto-stops on playback complete)..."
+
+# Run launch in background, log to file and show on screen simultaneously.
+ros2 launch fusioncore_datasets nclt_benchmark.launch.py \
     data_dir:="$DATA_DIR/raw files" \
     output_bag:="$BAG_DIR" \
     playback_rate:=$RATE \
     duration_s:=0.0 \
-    navsat_datum_yaml:="$DATUM_YAML" 2>&1 | tee "$RESULTS_DIR/launch.log" || true
+    navsat_datum_yaml:="$DATUM_YAML" \
+    2>&1 >> "$RESULTS_DIR/launch.log" &
+LAUNCH_PID=$!
 
-sleep 8
+# Show live output while monitoring for completion.
+tail -f "$RESULTS_DIR/launch.log" &
+TAIL_PID=$!
+
+ELAPSED=0
+while [ $ELAPSED -lt $WALL_TIME ]; do
+    if ! kill -0 $LAUNCH_PID 2>/dev/null; then
+        echo ""
+        echo "Launch exited on its own."
+        break
+    fi
+    if grep -q "Playback complete" "$RESULTS_DIR/launch.log" 2>/dev/null; then
+        echo ""
+        echo "Playback complete detected. Waiting 8s for bag to flush..."
+        sleep 8
+        kill -SIGINT $LAUNCH_PID 2>/dev/null || true
+        sleep 5
+        break
+    fi
+    sleep 5
+    ELAPSED=$((ELAPSED + 5))
+done
+
+if [ $ELAPSED -ge $WALL_TIME ]; then
+    echo "Wall-time cap hit ($WALL_TIME s). Stopping..."
+    kill -SIGINT $LAUNCH_PID 2>/dev/null || true
+    sleep 5
+fi
+
+kill $TAIL_PID 2>/dev/null || true
+wait $LAUNCH_PID 2>/dev/null || true
+
+sleep 3
 pkill -9 -f "fusioncore_node|nclt_player|ekf_node|navsat_transform_node|ros2 bag record|component_container" 2>/dev/null || true
 sleep 3
 
