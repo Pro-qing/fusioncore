@@ -97,6 +97,11 @@ struct FusionCoreConfig {
   // Multiplier applied to q_position each predict step while in coast mode.
   // 20.0 ≈ 4.5× position sigma growth per second at 100Hz IMU.
   double gnss_coast_q_factor = 20.0;
+  // Also enter coast mode when GPS has been absent for this many seconds.
+  // Handles GPS outages where the receiver stops publishing entirely (mode=2,
+  // power loss, tunnel) rather than publishing fixes that fail the chi2 gate.
+  // 0.0 = disabled; typical value: 30.0
+  double gnss_coast_timeout_s = 0.0;
 };
 
 // How heading was validated: tracked per filter run

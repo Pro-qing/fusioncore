@@ -258,6 +258,19 @@ bool FusionCore::apply_delayed_measurement(
 }
 
 void FusionCore::predict_to(double timestamp_seconds) {
+  // Enter coast mode on GPS timeout: receiver went silent (mode=2, tunnel,
+  // power loss) rather than publishing rejectable fixes. Consecutive-reject
+  // coast mode won't fire in this case because there are no fixes to reject.
+  if (config_.gnss_coast_timeout_s > 0.0 &&
+      config_.gnss_coast_n > 0 &&
+      last_gnss_time_ >= 0.0 &&
+      !gnss_in_coast_ &&
+      (timestamp_seconds - last_gnss_time_) > config_.gnss_coast_timeout_s)
+  {
+    gnss_in_coast_ = true;
+    ukf_.set_position_noise_scale(config_.gnss_coast_q_factor);
+  }
+
   double dt = timestamp_seconds - last_timestamp_;
   if (dt < config_.min_dt) return;
   if (dt > config_.max_dt) {
