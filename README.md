@@ -93,7 +93,7 @@ Most sensor fusion tutorials assume clean data. Real robots don't have clean dat
 
 ## Benchmark
 
-FusionCore vs robot_localization on the [NCLT dataset](http://robots.engin.umich.edu/nclt/): same IMU + wheel odometry + GPS, no manual tuning. Nine full-length sequences across all seasons. RL-EKF run with chi-squared-equivalent thresholds at 99.9% confidence.
+FusionCore vs robot_localization on the [NCLT dataset](http://robots.engin.umich.edu/nclt/): same IMU + wheel odometry + GPS, no manual tuning. Twelve full-length sequences across all seasons. RL-EKF run with chi-squared-equivalent thresholds at 99.9% confidence.
 
 | Sequence | Season | Duration | FC ATE RMSE | RL-EKF ATE RMSE | Winner |
 |---|---|---|---|---|---|
@@ -106,8 +106,13 @@ FusionCore vs robot_localization on the [NCLT dataset](http://robots.engin.umich
 | 2012-09-28 | Fall | 77 min | **10.8 m** | 55.7 m | FC +81% |
 | 2012-10-28 | Fall | 85 min | **29.9 m** | 60.0 m | FC +50% |
 | 2012-11-04 | Fall | 79 min | **60.1 m** | 122.0 m | FC +51% |
+| 2012-12-01 | Winter | 75 min | **21.0 m** | 90.7 m | FC +77% |
+| 2013-02-23 | Winter | 78 min | **59.4 m** | 82.2 m | FC +28% |
+| 2013-04-05 | Spring | 68 min | **12.1 m** | 268.9 m | FC +96% |
 
-RL-UKF diverges with NaN on all nine sequences. FusionCore wins 7/9 sequences. The two FC losses are driven by a GPS data quality issue on 2012-08-20 (105 corrupt mode-3 fixes in a 24-second window) and accumulated heading error during a 461-second GPS blackout on 2012-06-15. See [benchmarks/README.md](benchmarks/README.md) for full per-sequence analysis.
+RL-UKF diverges with NaN on all twelve sequences. FusionCore wins 10/12 sequences. RL-EKF's losses trace to a single root cause: the GPS driver reports 3m sigma, but measured against RTK ground truth, actual p95 noise is 9.7-53.1m depending on the day. RL's gate is calibrated to the stated 3m and rejects valid fixes on bad-GPS days. FusionCore's adaptive noise estimation (`adaptive.gnss: true`) keeps chi2 statistics calibrated in real time.
+
+The two FC losses are driven by a GPS data quality issue on 2012-08-20 (105 corrupt mode-3 fixes in a 24-second window at a blackout boundary) and accumulated heading error during a 462-second GPS blackout on 2012-06-15. See [benchmarks/README.md](benchmarks/README.md) for full per-sequence analysis including root causes and path-to-fix.
 
 <p align="center">
   <img src="docs/assets/fig2_traj_grid.png" alt="Trajectory overlay: all 9 sequences, SE3-aligned to RTK GPS ground truth" width="650">

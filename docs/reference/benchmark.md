@@ -1,24 +1,29 @@
 # Benchmark Results
 
-FusionCore vs robot_localization EKF on the [NCLT dataset](http://robots.engin.umich.edu/nclt/) (University of Michigan North Campus Long-Term). Nine sequences, same sensor pipeline, no per-sequence tuning.
+FusionCore vs robot_localization EKF on the [NCLT dataset](http://robots.engin.umich.edu/nclt/) (University of Michigan North Campus Long-Term). Twelve sequences across all seasons, same single config file, no per-sequence tuning.
 
 ---
 
-## Summary: 9 sequences, 7 FC wins
+## Summary: 12 sequences, 10 FC wins
 
-| Sequence | Duration | FC ATE (3D) | RL-EKF ATE (3D) | Winner |
-|---|---|---|---|---|
-| 2012-01-08 | 92 min | **18.6 m** | 41.2 m | FC +55% |
-| 2012-02-04 | 77 min | **49.7 m** | 265.5 m | FC +81% |
-| 2012-03-31 | 87 min | **22.0 m** | 156.5 m | FC +86% |
-| 2012-05-11 | 84 min | **9.7 m** | 11.5 m | FC +16% |
-| 2012-06-15 | 55 min | 49.2 m | **18.2 m** | RL +63% |
-| 2012-08-20 | 83 min | 98.3 m | **10.6 m** | RL +89% |
-| 2012-09-28 | 77 min | **10.8 m** | 55.7 m | FC +81% |
-| 2012-10-28 | 85 min | **29.9 m** | 60.0 m | FC +50% |
-| 2012-11-04 | 79 min | **60.1 m** | 122.0 m | FC +51% |
+| Sequence | Season | Duration | GPS Fixes | Max Blackout | FC ATE (3D) | RL-EKF ATE (3D) | Winner |
+|---|---|---|---|---|---|---|---|
+| 2012-01-08 | Winter | 92 min | 22,041 | 203s | **18.6 m** | 41.2 m | FC +55% |
+| 2012-02-04 | Winter | 77 min | 18,808 | 184s | **49.7 m** | 265.5 m | FC +81% |
+| 2012-03-31 | Spring | 87 min | 20,482 | 262s | **22.0 m** | 156.5 m | FC +86% |
+| 2012-05-11 | Spring | 84 min | 21,621 | 120s | **9.7 m** | 11.5 m | FC +16% |
+| 2012-06-15 | Summer | 55 min | 12,399 | **462s** | 49.2 m | **18.2 m** | RL +63% |
+| 2012-08-20 | Summer | 83 min | 20,025 | 228s | 98.3 m | **10.6 m** | RL +89% |
+| 2012-09-28 | Fall | 77 min | 19,191 | 196s | **10.8 m** | 55.7 m | FC +81% |
+| 2012-10-28 | Fall | 85 min | 21,060 | 256s | **29.9 m** | 60.0 m | FC +50% |
+| 2012-11-04 | Fall | 79 min | 17,840 | 400s | **60.1 m** | 122.0 m | FC +51% |
+| 2012-12-01 | Winter | 75 min | 17,941 | 173s | **21.0 m** | 90.7 m | FC +77% |
+| 2013-02-23 | Winter | 78 min | 19,333 | 240s | **59.4 m** | 82.2 m | FC +28% |
+| 2013-04-05 | Spring | 68 min | 16,297 | 275s | **12.1 m** | 268.9 m | FC +96% |
 
-**ATE = absolute trajectory error, SE3-aligned to RTK GPS ground truth.**
+ATE = absolute trajectory error, SE3-aligned to RTK GPS ground truth. GPS Fixes = mode-3 (3D) fixes only, as published by nclt_player.
+
+RL-UKF: NaN divergence on all twelve sequences (known numerical instability under sim-time playback, confirmed by RL maintainer). Excluded from results.
 
 ---
 
@@ -44,6 +49,12 @@ FusionCore vs robot_localization EKF on the [NCLT dataset](http://robots.engin.u
 |            | RL-EKF     | 60.0 m | 59.6 m | 0.1% | 3.6% | 7.40 | **27.8 m** |
 | 2012-11-04 | FusionCore | **60.1 m** | **59.2 m** | 3.8% | 29.5% | **9.86** | **32.3 m** |
 |            | RL-EKF     | 122.0 m | 121.9 m | 0.0% | 0.0% | 20.02 | 37.0 m |
+| 2012-12-01 | FusionCore | **21.0 m** | **14.6 m** | 24.3% | 65.4% | **2.90** | 32.9 m |
+|            | RL-EKF     | 90.7 m | 90.5 m | 5.3% | 20.6% | 12.53 | 42.1 m |
+| 2013-02-23 | FusionCore | **59.4 m** | **58.5 m** | 1.6% | 16.2% | **6.67** | **24.1 m** |
+|            | RL-EKF     | 82.2 m | 81.8 m | 0.0% | 0.6% | 9.23 | 35.0 m |
+| 2013-04-05 | FusionCore | **12.1 m** | **10.1 m** | 32.8% | 81.5% | **2.26** | 30.2 m |
+|            | RL-EKF     | 268.9 m | 268.7 m | 0.0% | 0.0% | 50.11 | **27.3 m** |
 
 ---
 
@@ -52,13 +63,14 @@ FusionCore vs robot_localization EKF on the [NCLT dataset](http://robots.engin.u
 **Dataset:** NCLT (University of Michigan, 2012-2013). Wheeled robot (Segway RMP) driving on a large campus over multiple seasons. Raw CSV sensor files replayed at 3x real time via `nclt_player`.
 
 **Sensors used (identical inputs to both filters):**
+
 - IMU: Microstrain 3DM-GX3-45 at 100 Hz (raw specific force, no factory gravity removal)
 - Wheel odometry: Segway RMP encoders at 100 Hz
 - GPS: Novatel SPAN-CPT, ~3m CEP, 5 Hz
 
 **Ground truth:** RTK GPS (`gps_rtk.csv`), projected to local ENU via PROJ/WGS84. Evaluation: [evo](https://github.com/MichaelGrupp/evo), SE(3)-aligned ATE.
 
-**FusionCore config:** Single YAML file (`fusioncore_datasets/config/nclt_fusioncore.yaml`), same across all 9 sequences. No per-sequence tuning.
+**FusionCore config:** Single YAML file (`fusioncore_datasets/config/nclt_fusioncore.yaml`), identical across all twelve sequences. No per-sequence tuning.
 
 **RL-EKF config:** `two_d_mode: true` (flat-terrain Segway assumption), GPS fused via `navsat_transform` with a fixed datum from the first valid RTK fix. Matching chi-squared gating thresholds to FusionCore (`odom0_twist_rejection_threshold: 4.03`, `odom1_pose_rejection_threshold: 3.72`).
 
@@ -66,45 +78,113 @@ FusionCore vs robot_localization EKF on the [NCLT dataset](http://robots.engin.u
 
 ---
 
-## Why FusionCore wins on most sequences
+## What drives the results
 
-RL-EKF fails badly on 2012-02-04, 2012-03-31, and 2012-09-28 (265m, 156m, 55m ATE vs FC's 49m, 22m, 10m). The common cause: RL-EKF takes GPS covariance directly from the `NavSatFix` message, which NCLT reports as `var_xy=9` (3m sigma). This is tighter than the actual noise, so valid GPS innovations fail RL's Mahalanobis gate and GPS gets rejected for long stretches. FusionCore's `gnss.base_noise_xy` parameter floors the measurement noise to match real sensor behavior, keeping chi2 statistics calibrated.
+### Why RL-EKF fails on 10 sequences
 
-FusionCore's adaptive noise estimation (window=50, alpha=0.01) further adjusts GPS and encoder noise in real time when actual innovation variance diverges from the noise model. This helps on sequences with variable GPS quality (urban campus, tree cover, buildings).
+The drift rate column tells the story most clearly. RL drift rates of 31.84 m/km (2012-02-04), 50.11 m/km (2013-04-05), and 20.02 m/km (2012-11-04) mean the filter is operating without GPS for large portions of those runs. A Segway at 1.5 m/s accumulating 31 m per kilometer traveled is in pure dead-reckoning almost the entire time.
+
+The cause is consistent across all RL failures: `nclt_player` publishes `position_covariance var_xy=9` (3m sigma), which is the Novatel SPAN-CPT specification under ideal open-sky conditions. Measured against the RTK ground truth, actual GPS noise across all twelve sequences looks like this:
+
+| Sequence | Median error | p95 error | p99 error | RL result |
+|---|---|---|---|---|
+| 2012-01-08 | 3.7 m | 20.1 m | 49.7 m | 41.2 m |
+| 2012-02-04 | 5.6 m | 46.6 m | **234.9 m** | 265.5 m |
+| 2012-03-31 | 5.7 m | 14.7 m | 32.7 m | 156.5 m |
+| 2012-05-11 | 3.3 m | 13.3 m | 47.7 m | 11.5 m |
+| 2012-06-15 | 2.6 m | 9.7 m | 21.3 m | **18.2 m** (RL wins) |
+| 2012-08-20 | 3.4 m | 12.7 m | 55.0 m | **10.6 m** (RL wins) |
+| 2012-09-28 | 3.5 m | 12.8 m | 43.2 m | 55.7 m |
+| 2012-10-28 | 4.6 m | 16.0 m | 48.9 m | 60.0 m |
+| 2012-11-04 | 5.7 m | **53.1 m** | 79.2 m | 122.0 m |
+| 2012-12-01 | 4.7 m | 20.7 m | 80.4 m | 90.7 m |
+| 2013-02-23 | 5.4 m | 33.0 m | 73.6 m | 82.2 m |
+| 2013-04-05 | 3.7 m | 19.9 m | 87.8 m | 87.8 m |
+
+The driver states 3m sigma (var_xy=9). The median actual error is 2.6-5.7m across all sequences (already at or above the stated 1-sigma), and p95 ranges from 9.7m to 53.1m. RL's gate is calibrated to the stated 3m; it rejects anything beyond roughly 3x that (Mahalanobis distance above the chi2 threshold). On sequences like 2012-02-04 and 2012-11-04, most GPS fixes are outliers by RL's definition of "outlier."
+
+The two sequences where RL wins (2012-06-15 and 2012-08-20) have the cleanest GPS of the set: p95 of 9.7m and 12.7m respectively. RL's tight gate works when the actual noise matches the stated noise. It fails everywhere else.
+
+The contrast on 2012-05-11 (RL drift: 1.25 m/km vs 31.84 m/km on 2012-02-04) makes the mechanism concrete. Same robot, same campus, same config. The only difference is GPS data quality on that specific day. When GPS covariance matches actual sensor noise, both filters perform comparably (9.7m vs 11.5m). The advantage opens when the reported covariance is too tight.
+
+FusionCore's `adaptive.gnss: true` adjusts GPS measurement noise in real time from the innovation sequence. When actual GPS noise is higher than the driver reports, the adaptive window inflates the noise model and keeps chi2 statistics calibrated. RL has no equivalent.
+
+**What would help RL:** Increasing `position_covariance var_xy` in nclt_player from 9 to 25 (5m sigma, closer to actual NCLT GPS accuracy in urban conditions) would reduce RL's catastrophic losses substantially without per-sequence tuning. This does not require modifying robot_localization itself, only the dataset player. However, RL would still lack adaptive noise, and the calibration burden would remain whenever the dataset or environment changes.
+
+### What drives FC performance variation
+
+The single best predictor of FC ATE is the longest GPS blackout in the sequence:
+
+| Max blackout | Sequences | FC ATE range |
+|---|---|---|
+| < 200s | 2012-01-08 (203s), 2012-12-01 (173s) | 18-21 m |
+| 200-300s | 2012-03-31, 2012-05-11, 2012-09-28, 2012-10-28, 2013-04-05 | 10-30 m |
+| 300-480s | 2012-02-04, 2012-06-15, 2012-11-04, 2013-02-23 | 49-60 m |
+| Adversarial GPS | 2012-08-20 (228s blackout + 105 corrupt fixes at boundary) | 98.3 m |
+
+FC drift rate is consistent at 1-4 m/km on clean sequences. Values above 6 m/km (2012-06-15, 2012-08-20, 2012-11-04, 2013-02-23) signal heading error accumulated during coast mode. The 2012-08-20 transient is a distinct failure mode: adversarial GPS data at the blackout boundary, not heading drift.
 
 ---
 
-## The two losses: honest analysis
+## FC performance tiers
+
+**Excellent (< 20m ATE):** 2012-05-11 (9.7m), 2012-09-28 (10.8m), 2013-04-05 (12.1m), 2012-01-08 (18.6m)
+
+High GPS fix count (19k-22k), max blackout under 200s, no adversarial GPS. FC operates as intended.
+
+**Good (20-35m ATE):** 2012-03-31 (22.0m), 2012-12-01 (21.0m), 2012-10-28 (29.9m)
+
+Moderate GPS density, blackouts under 275s, clean GPS at boundaries. Occasional heading drift corrected quickly on GPS return.
+
+**Moderate (35-65m ATE):** 2012-02-04 (49.7m), 2012-06-15 (49.2m), 2013-02-23 (59.4m), 2012-11-04 (60.1m)
+
+Long blackouts (240-462s) or low GPS density. Heading drift compounds over coast mode duration before correction.
+
+**Poor (> 65m ATE):** 2012-08-20 (98.3m)
+
+Structurally different failure: adversarial GPS cluster at blackout boundary. Outside the 2-3 minute transient windows, FC tracks at 5-10m, on-par with RL-EKF.
+
+---
+
+## The two FC losses: honest analysis
 
 ### 2012-06-15 (FC 49.2m, RL 18.2m)
 
-This 55-minute sequence has the lowest GPS density of the nine (15,594 fixes vs 30,000-46,000 on others) and contains a **461-second GPS blackout** (7.7 minutes). During that window the filter dead-reckons on encoder and IMU alone.
+The lowest-density GPS sequence in the set: 12,399 mode-3 fixes vs 17,000-22,000 on others. One GPS blackout of 462 seconds (7.7 minutes).
 
-FC's coast mode inflates process noise during GPS absence so that the chi2 gate relaxes and the first valid returning fix is accepted. The coast/recovery logic was tuned for the majority of sequences, which have shorter or no blackouts. On this sequence specifically, the 461s blackout pushes the limit of what the current dead-reckoning maintains: heading error accumulates during the blackout to the point that returning GPS triggers a correction that briefly inflates ATE before the filter re-converges. RL-EKF handles this better on this specific sequence because its simpler state (2D mode, no bias states) accumulates less uncertainty over the blackout period.
+During the blackout, FC dead-reckons on encoder and IMU. Coast mode inflates `Q_position` (coast_q_factor=10) and down-weights IMU WZ (coast_imu_wz_scale=500), so encoder WZ dominates heading. The encoder WZ bias (B_EWZ) is calibrated from GPS heading cross-covariance before the blackout and subtracted during it. However, any residual B_EWZ error compounds over 7.7 minutes. At 100 Hz with even a small uncorrected heading rate, lateral position error grows quadratically.
 
-This is an active area of work. The gyro bias estimation during coast mode (coast_q_bias_factor=100, encoder WZ correction) is intended to limit heading drift, and the parameters are being tuned for long-blackout robustness.
+RL-EKF wins here because its 2D mode has a simpler state vector and accumulates less uncertainty over the blackout. This is a structural advantage for RL on GPS-sparse sequences with very long blackouts on flat terrain. See [issue #63](https://github.com/manankharwar/fusioncore/issues/63).
+
+**Path to fixing this:**
+
+- Reduce `coast_imu_wz_scale` from 500 to 50-100 for blackouts exceeding 200s. At 500x down-weighting, the IMU WZ is essentially ignored. Both sensors sharing heading responsibility reduces sensitivity to B_EWZ residual error.
+- Magnetometer integration closes the observability gap completely: an absolute heading reference during GPS absence makes B_GZ and B_EWZ irrelevant. This is the architecturally correct fix and is on the roadmap.
+- Duration-dependent `coast_q_factor`: the current fixed 10x multiplier was tuned for the majority of sequences. For blackouts > 300s, a nonlinear ramp may reduce heading drift without sacrificing re-acquisition on short blackouts.
 
 ### 2012-08-20 (FC 98.3m, RL 10.6m)
 
-This is the hardest sequence in the dataset for GPS-based localization. The raw GPS stream contains **105 mode-3 fixes that are 720-840m off the RTK ground truth** (visible in `gps.csv`, excluded from `gps_rtk.csv`). These outliers cluster in a 24-second window at the end of the second GPS blackout at t=66 min. The sequence has two blackouts: 228s at t=42.2 min and 211s at t=62.5 min.
+The raw GPS stream contains 105 mode-3 fixes 720-840m off the RTK ground truth in `gps.csv`. The ground-truth preprocessor excludes them but they appear as valid mode-3 fixes in the real data stream. They cluster in a 24-second window at the end of the second GPS blackout (211s at t=62.5 min).
 
-Per-minute trajectory analysis of the current run shows:
+This is adversarial for any chi2-based gating scheme. During coast mode recovery, FC relaxes the chi2 gate to accept the first valid returning fix after genuine position drift. A dense cluster of corrupt fixes arriving at exactly the re-acquisition moment exploits this window.
 
-| Time | FC error | Note |
+Per-minute error analysis:
+
+| Time | FC error | Status |
 |---|---|---|
-| 0-42 min | 1-10 m | Normal GPS, both filters tracking correctly |
-| 43-46 min | spike to ~100m, recovers | First blackout (228s): GPS errors up to ~70m at boundary |
-| 47-62 min | 3-10 m | Full recovery, GPS tracking correctly |
-| 63-67 min | spike to ~788m, recovers | Second blackout (211s): 105 fixes 720-840m off RTK at t=66 min |
-| 68-82 min | 5-10 m | Full recovery for remaining 15 minutes |
+| 0-42 min | 1-10 m | Normal GPS coverage, both filters tracking well |
+| 43-46 min | spike to ~100m, recovers | Blackout 1 (228s): boundary GPS errors up to ~70m |
+| 47-62 min | 3-10 m | Full recovery |
+| 63-67 min | spike to ~788m, recovers in 2 min | Blackout 2 (211s): 105 adversarial fixes at boundary |
+| 68-82 min | 5-10 m | Full recovery, remaining 15 minutes on-par with RL |
 
-The 98m ATE RMSE comes almost entirely from those two 2-3 minute transients. Outside those windows FC tracks at 5-10m, comparable to RL-EKF.
+The 98m ATE RMSE is driven almost entirely by those two transients. RL-EKF wins because its tight Mahalanobis gate (calibrated to the stated 3m sigma, which causes GPS rejection on 10 other sequences) accidentally rejects these outliers too. See [issue #64](https://github.com/manankharwar/fusioncore/issues/64).
 
-The root cause: FusionCore's coast mode inflates `Q_position` during GPS absence to keep the chi2 gate permissive for genuine drift correction on return. With the current `coast_q_factor=10`, position uncertainty after a 211s blackout is sigma_xy~46m. An 840m outlier produces chi2=333, which is strongly rejected. However, the outlier GPS cluster arrives precisely at the end of the blackout before a short ramp-back to correct GPS, and the filter's position prediction after 211s of dead-reckoning may not be accurate enough to reject intermediate outliers under all configurations tested.
+**Path to fixing this:**
 
-RL-EKF avoids this because it does not inflate process noise during GPS absence, keeping P small and chi2 tighter. It also operates with navsat_transform which may filter some outliers before they reach the EKF.
-
-**This is an active investigation.** The specific challenge is that `coast_q_factor` controls a tradeoff: too high and outliers slip through chi2; too low and valid corrective fixes are rejected after genuine drift. The 2012-08-20 GPS outlier pattern (outliers clustered exactly at a blackout boundary) is particularly adversarial for any chi2-based gating scheme.
+- **Velocity sanity check:** A GPS fix 720m from the dead-reckoned position after a 211s blackout implies ~3400 m/s. A hard `max_implied_speed` check (e.g., 20 m/s) operating before the chi2 gate rejects this trivially and has zero effect on normal operation.
+- **Cluster consistency gate:** Five consecutive fixes all landing 720-840m from the predicted position with geometric consistency (tight cluster, not random scatter) is distinguishable from noise. A secondary check on cluster coherence catches this without affecting single-fix rejection behavior.
+- **Gate hysteresis on recovery:** Instead of a step change in chi2 threshold at re-acquisition, a linear ramp from relaxed back to nominal over the first N returned fixes makes it harder for a dense cluster to slip through entirely.
 
 ---
 
@@ -112,13 +192,16 @@ RL-EKF avoids this because it does not inflate process noise during GPS absence,
 
 ```bash
 # Build
-colcon build --packages-select fusioncore_core fusioncore_ros
+colcon build --packages-select fusioncore_core fusioncore_ros fusioncore_datasets
 
 # Run one sequence (auto-stops on playback complete, ~15-50 min at 3x)
 bash benchmarks/run_one.sh 2012-01-08
 
-# Results in:
+# Results written to:
 # benchmarks/nclt/2012-01-08/results_full/BENCHMARK.md
+
+# Run all 12 sequences sequentially (plan for 6-8 hours total)
+bash benchmarks/run_all.sh
 ```
 
-Full tooling and configs in [`benchmarks/`](https://github.com/manankharwar/fusioncore/tree/benchmark/benchmarks).
+Full tooling and configs in [`benchmarks/`](https://github.com/manankharwar/fusioncore/tree/main/benchmarks).

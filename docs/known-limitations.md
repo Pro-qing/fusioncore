@@ -20,7 +20,11 @@ FusionCore's chi2 gate relaxes during GPS blackout recovery (`coast_q_factor`) t
 
 This pattern appears in NCLT 2012-08-20: 105 mode-3 GPS fixes 720-840 m off RTK arrive in a 24-second window at the end of a 211-second blackout. The filter accepts them, spikes to ~788 m error, and recovers within 2 minutes. See [issue #64](https://github.com/manankharwar/fusioncore/issues/64).
 
-**Workaround:** Lower `gnss.coast_q_factor` to tighten the gate during recovery. This reduces the spike magnitude at the cost of slower re-acquisition after legitimate long blackouts. There is no single value that handles both cases optimally. Cluster-based gating (tracking consistency across multiple consecutive fixes) is the planned fix.
+**Workaround:** Lower `gnss.coast_q_factor` to tighten the gate during recovery. This reduces the spike magnitude at the cost of slower re-acquisition after legitimate long blackouts. There is no single value that handles both cases optimally.
+
+**Not yet implemented: velocity sanity check.** A GPS fix 720 m from the dead-reckoned position after a 211-second blackout implies ~3400 m/s of motion. A hard `max_implied_speed` check (e.g., 20 m/s) operating before the chi2 gate rejects this pattern trivially and has zero effect on normal operation. This check is tracked but not yet in the filter.
+
+**Not yet implemented: cluster consistency gate.** A single outlier at 720 m is handled by chi2. Five consecutive fixes all landing 720-840 m from the predicted position with tight geometric consistency is a distinguishable pattern from noise. A secondary check on cluster coherence across multiple consecutive fixes would catch this without affecting single-fix rejection behavior. This is the planned architectural fix.
 
 ---
 
