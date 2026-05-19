@@ -115,6 +115,12 @@ RL-UKF diverges with NaN on all nine sequences. FusionCore wins 7/9 sequences. T
 
 ---
 
+## Used by
+
+FusionCore is being tested or deployed on real hardware by members of the community. If you are using it on your robot, open an issue or leave a comment in [Discussions](https://github.com/manankharwar/fusioncore/discussions) and I will add you here.
+
+---
+
 ## Coming from robot_localization?
 
 If any of these have bitten you, FusionCore was built with them in mind:
