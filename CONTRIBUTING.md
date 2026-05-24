@@ -28,7 +28,7 @@ colcon test --packages-select compass_msgs fusioncore_core fusioncore_ros
 colcon test-result --verbose
 ```
 
-All 49 tests must pass. CI will catch it if they don't.
+All 45 tests must pass. CI will catch it if they don't.
 
 ## Hardware configs
 

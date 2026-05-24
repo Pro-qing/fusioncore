@@ -74,6 +74,6 @@ FusionCore's adaptive noise covariance updates within a session from the innovat
 
 When fusing VSLAM pose (`vslam.topic`), FusionCore anchors the offset between the VSLAM map frame and the filter's odometry frame on first message. If the VSLAM system re-localizes to a different part of its map (loop closure, kidnapping recovery), the map origin shifts and the anchored offset becomes stale.
 
-The reinitialization detector (`vslam.reinit_n`, `vslam.reinit_jump_m`) catches large instantaneous jumps. It does not catch slow drift due to map deformation.
+The reinitialization detector (`vslam.reinit_n`) catches large instantaneous jumps: after `vslam.reinit_n` consecutive chi2 rejections (default 10, approximately 2 seconds at 5 Hz), FusionCore re-anchors the map origin to the current filter position and resumes fusion. It does not catch slow drift due to map deformation.
 
 **Workaround:** Trigger a filter reset (`ros2 service call /fusioncore/reset`) after VSLAM re-localization completes.
