@@ -2095,33 +2095,35 @@ private:
       const double t3 = 2.0 * (qw*qz + qx*qy);           // yaw numerator
       const double t4 = 1.0 - 2.0 * (qy*qy + qz*qz);    // yaw denominator
 
-      const double denom_roll  = t0*t0 + t1*t1;
-      const double denom_yaw   = t3*t3 + t4*t4;
-      // Pitch Jacobian has 1/sqrt(1-t2^2); clamp away from zero to avoid NaN
-      // near gimbal lock (pitch = +/-90 deg). At singularity the Jacobian is
-      // undefined; we clamp to produce large-but-finite covariance rather than NaN.
-      const double safe_pitch  = std::max(std::sqrt(1.0 - t2*t2), 1e-6);
+      // Gimbal lock protection: all three denominators go to zero when pitch = +/-90 deg.
+      // At pitch = +/-90 deg, t0=t1=0 (roll undefined) and t3=t4=0 (yaw undefined) and
+      // sqrt(1-t2^2)=0 (pitch Jacobian singular). Clamp all three to 1e-12 to produce
+      // large-but-finite covariance instead of NaN. The unit quaternion constraint
+      // guarantees none of these denominators can be negative.
+      const double safe_denom_roll  = std::max(t0*t0 + t1*t1, 1e-12);
+      const double safe_denom_yaw   = std::max(t3*t3 + t4*t4, 1e-12);
+      const double safe_pitch       = std::max(std::sqrt(1.0 - t2*t2), 1e-12);
 
       // 3x4 Jacobian: rows = [roll, pitch, yaw], cols = [qw, qx, qy, qz].
       Eigen::Matrix<double, 3, 4> J;
 
-      // d(roll)/d(qw, qx, qy, qz)
-      J(0,0) = 2.0*qx*t1 / denom_roll;
-      J(0,1) = (2.0*qw*t1 + 4.0*qx*t0) / denom_roll;
-      J(0,2) = (2.0*qz*t1 + 4.0*qy*t0) / denom_roll;
-      J(0,3) = 2.0*qy*t1 / denom_roll;
+      // d(roll)/d(qw, qx, qy, qz)  via d/d* atan2(t0, t1)
+      J(0,0) = 2.0*qx*t1 / safe_denom_roll;
+      J(0,1) = (2.0*qw*t1 + 4.0*qx*t0) / safe_denom_roll;
+      J(0,2) = (2.0*qz*t1 + 4.0*qy*t0) / safe_denom_roll;
+      J(0,3) = 2.0*qy*t1 / safe_denom_roll;
 
-      // d(pitch)/d(qw, qx, qy, qz)
+      // d(pitch)/d(qw, qx, qy, qz)  via d/d* asin(t2)
       J(1,0) =  2.0*qy / safe_pitch;
       J(1,1) = -2.0*qz / safe_pitch;
       J(1,2) =  2.0*qw / safe_pitch;
       J(1,3) = -2.0*qx / safe_pitch;
 
-      // d(yaw)/d(qw, qx, qy, qz)
-      J(2,0) = 2.0*qz*t4 / denom_yaw;
-      J(2,1) = 2.0*qy*t4 / denom_yaw;
-      J(2,2) = (2.0*qx*t4 + 4.0*qy*t3) / denom_yaw;
-      J(2,3) = (2.0*qw*t4 + 4.0*qz*t3) / denom_yaw;
+      // d(yaw)/d(qw, qx, qy, qz)  via d/d* atan2(t3, t4)
+      J(2,0) = 2.0*qz*t4 / safe_denom_yaw;
+      J(2,1) = 2.0*qy*t4 / safe_denom_yaw;
+      J(2,2) = (2.0*qx*t4 + 4.0*qy*t3) / safe_denom_yaw;
+      J(2,3) = (2.0*qw*t4 + 4.0*qz*t3) / safe_denom_yaw;
 
       // 4x4 quaternion covariance sub-block from P (order: qw, qx, qy, qz).
       static constexpr int qi[4] = {

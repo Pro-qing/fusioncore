@@ -301,7 +301,7 @@ During GPS absence, heading errors accumulate at `gyro_bias * time` with no GPS 
 
 **Coast mode triggers:**
 - After `gnss.coast_n` consecutive GPS rejections (default: 5)
-- After `gnss.coast_timeout_s` seconds of GPS silence (handles receiver-silent outages where no fixes arrive to reject)
+- After `gnss.coast_timeout_s` seconds of GPS silence (default: 0.0, disabled; set to 30.0 to catch receiver-silent outages where no fixes arrive to reject)
 
 **Coast mode exits** when the first GPS fix passes the chi2 gate after the blackout ends. Process noise returns to normal immediately.
 
@@ -310,13 +310,12 @@ During GPS absence, heading errors accumulate at `gyro_bias * time` with no GPS 
 gnss.coast_n: 5                  # consecutive rejections before entering coast
 gnss.coast_q_factor: 20.0        # position Q multiplier during coast
 gnss.coast_q_bias_factor: 100.0  # gyro bias Q multiplier during coast
-gnss.coast_imu_wz_scale: 1.0     # R_imu[WZ] multiplier (1.0 = disabled, no effect)
-gnss.coast_timeout_s: 0.0        # enter coast after silence (0.0 = disabled)
+gnss.coast_imu_wz_scale: 1.0     # R_imu[WZ] multiplier (1.0 = no effect, disabled)
+gnss.coast_timeout_s: 0.0        # silence-based entry (0.0 = disabled)
 
-# Recommended tuning for outdoor robots with frequent GPS blackouts:
-# gnss.coast_q_factor: 20.0
+# Recommended additions for outdoor robots with frequent GPS blackouts:
 # gnss.coast_imu_wz_scale: 500.0  # encoder dominates heading during blackout
-# gnss.coast_timeout_s: 30.0      # also enter coast if GPS receiver goes silent
+# gnss.coast_timeout_s: 30.0      # enter coast if GPS receiver goes silent (no fixes to reject)
 ```
 
 **Choosing coast_q_factor**
