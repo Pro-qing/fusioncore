@@ -91,6 +91,7 @@ paper/*.log
 paper/*.out
 paper/*.bbl
 paper/*.blg
+paper/*.zip
 CLAUDE.md
 
 # Client engagement files: local only, never commit
