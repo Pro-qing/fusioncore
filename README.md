@@ -1,9 +1,9 @@
 # FusionCore
 
 [![CI](https://github.com/manankharwar/fusioncore/actions/workflows/ci.yml/badge.svg)](https://github.com/manankharwar/fusioncore/actions/workflows/ci.yml)
+[![arXiv](https://img.shields.io/badge/arXiv-2605.25239-b31b1b)](https://arxiv.org/abs/2605.25239)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20091053-blue)](https://doi.org/10.5281/zenodo.20091053)
 [![Docs](https://img.shields.io/badge/docs-manankharwar.github.io%2Ffusioncore-blue)](https://manankharwar.github.io/fusioncore/)
-[![Paper](https://img.shields.io/badge/paper-arXiv%20preprint-b31b1b)](paper/fusioncore_arxiv.pdf)
 [![Newsletter](https://img.shields.io/badge/newsletter-subscribe-orange)](https://manankharwar.substack.com)
 
 **ROS 2 UKF sensor fusion for robots that run in the real world. IMU + wheel encoders + GPS at 100 Hz. Handles bad calibration, timestamp jitter, delayed GPS, wheel slip, and ARM hardware out of the box. Apache 2.0.**
@@ -169,12 +169,24 @@ Apache 2.0.
 ## Citation
 
 ```bibtex
-@software{kharwar2026fusioncore,
+@article{kharwar2026fusioncore,
+  author  = {Kharwar, Manan},
+  title   = {FusionCore: A 23-State Unscented Kalman Filter for
+             IMU, Wheel Encoder, GPS, and Visual SLAM Fusion in ROS 2},
+  journal = {arXiv preprint arXiv:2605.25239},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2605.25239}
+}
+```
+
+If you prefer to cite the software release directly:
+
+```bibtex
+@software{kharwar2026fusioncore_software,
   author    = {Kharwar, Manan},
   title     = {FusionCore: ROS 2 UKF Sensor Fusion},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {0.2.3},
   doi       = {10.5281/zenodo.20091053},
   url       = {https://doi.org/10.5281/zenodo.20091053}
 }
