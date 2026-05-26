@@ -127,6 +127,8 @@ Running FusionCore on your robot? Drop a note in [Discussions #22](https://githu
 
 **Stereolabs community:** FusionCore + ZED integration guide posted on the Stereolabs developer forum, acknowledged by Stereolabs support. Under active evaluation by [@privvyledge](https://github.com/privvyledge) comparing FusionCore against Wolf, TIER IV EagleEye, and robot_localization on two platforms: an F1/10 scale car (indoor, VESC + RealSense D435i) and a full-size autonomous van (GPS + ZED 2i + 360 LiDAR).
 
+**OpenMowerNext (integration in progress):** FusionCore is being integrated as the localization stack in [OpenMowerNext](https://github.com/jkaflik/OpenMowerNext), a community ROS 2 autonomous mowing system. The integration replaces robot_localization with a single FusionCore lifecycle node fusing RTK GPS (u-blox F9P), IMU, and wheel odometry, with ECEF datum calculated from the mower's home position. [PR #45](https://github.com/jkaflik/OpenMowerNext/pull/45)
+
 ---
 
 ## Coming from robot_localization?
@@ -135,7 +137,7 @@ If any of these have bitten you, FusionCore was built with them in mind:
 
 | robot_localization issue | What FusionCore does instead |
 |---|---|
-| UKF diverges with NaN on GPS-heavy sequences ([#780](https://github.com/cra-ros-pkg/robot_localization/issues/780), [#777](https://github.com/cra-ros-pkg/robot_localization/issues/777)) | Chi-squared gate on every sensor; covariance bounded at each step. All nine NCLT sequences finish without NaN. |
+| UKF diverges with NaN on GPS-heavy sequences ([#780](https://github.com/cra-ros-pkg/robot_localization/issues/780), [#777](https://github.com/cra-ros-pkg/robot_localization/issues/777)) | Chi-squared gate on every sensor; covariance bounded at each step. All twelve NCLT sequences finish without NaN. |
 | navsat_transform crashes at UTM zone boundaries ([#951](https://github.com/cra-ros-pkg/robot_localization/issues/951), [#904](https://github.com/cra-ros-pkg/robot_localization/issues/904)) | GPS fused directly in ECEF. No UTM projection, no zone boundary. |
 | No non-holonomic constraint for wheeled robots ([#744](https://github.com/cra-ros-pkg/robot_localization/issues/744)) | Built-in NHC: lateral and vertical velocity zeroed as a virtual measurement on every encoder update. |
 | Delayed sensor messages cause missed updates ([#911](https://github.com/cra-ros-pkg/robot_localization/issues/911)) | Rolling IMU buffer with retrodiction. Late GPS fixes replay missed IMU steps automatically (up to 500 ms). |
