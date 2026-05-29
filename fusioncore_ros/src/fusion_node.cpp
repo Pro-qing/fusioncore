@@ -1941,8 +1941,11 @@ private:
       }
     }
 
-    // Some drivers set covariance[0] = -1 to signal "no orientation"
-    if (msg->orientation_covariance[0] < 0.0) {
+    // Some drivers set covariance[0] = -1 to signal "no roll/pitch data" (yaw-only message).
+    // This callback only ever reads cov[8] (yaw variance), so reject only when
+    // yaw data is also absent. Rejects all-zero and all-unknown messages; accepts
+    // messages where cov[0] = -1 but cov[8] carries a valid yaw variance.
+    if (msg->orientation_covariance[0] < 0.0 && msg->orientation_covariance[8] <= 0.0) {
       orientation_valid = false;
     }
 
